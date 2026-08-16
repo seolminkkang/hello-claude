@@ -35,6 +35,7 @@ flowchart LR
 | Week | Session | 주제 | 실험 유형 | 기록 |
 |---|---|---|---|---|
 | 1 | S1 | AI 기본기 (모델/제품/도구/Agent, Token, Context Window, Hallucination) | comparison | [기록](2026-08-15-w1-comparison-hallucination-model-check.md) |
+| 1 | S2 | Prompt Engineering (명확성, 예시, 출력형식 제약) | comparison | [기록](2026-08-16-w1-comparison-prompt-clarity-output-format.md) |
 <!-- /docs-done 실행 시 이 아래에 자동으로 한 줄씩 추가됨 -->
 
 ## 커리큘럼 개요
