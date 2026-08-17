@@ -7,9 +7,71 @@ practice_type:
 topic:
   - context-engineering
   - claude-md
+  - memory
+  - rag
 model: claude-sonnet
 status: draft
 result: project-specific-context-loads-without-repeating-in-prompt-but-source-not-isolated
+---
+
+# 핵심 개념 정리
+
+Context Engineering은 "정보를 Prompt/CLAUDE.md/Memory/RAG 중 어디에 둘지 판단하는
+원리"다. 아래는 이 판단 기준을 이해하는 과정에서 정리한 4가지 개념.
+
+## 1. Context Window — CPU/RAM/ROM/Disk로 이해하기
+처음엔 "JVM 힙 메모리"에 비유했는데 부정확했다. Andrej Karpathy가 제시한 프레임이
+더 정확하다:
+
+| 컴퓨터 부품 | LLM 대응 | 특징 |
+|---|---|---|
+| CPU | 모델(연산) | 실제 계산하는 부분 |
+| ROM | 모델 가중치(weights) | 학습 때 한 번 구워짐, 이후 불변 |
+| **RAM** | **Context Window** | 휘발성, 지금 이 계산에만 쓰임 |
+| Disk | Context Window 밖의 모든 것(Memory, 벡터DB, 문서) | 영구 저장, 필요할 때만 RAM으로 로드 |
+
+핵심 사실: **Claude API는 stateless다.** 대화가 이어지는 것처럼 보이는 이유는
+서버가 이전 호출을 기억해서가 아니라, 클라이언트가 매 요청마다 이전 대화 전체(또는
+요약본)를 통째로 다시 첨부해서 보내기 때문이다. "세션이 끝나면 GC처럼 지워지나?"
+라는 질문의 정확한 답은 — GC가 도는 게 아니라, 애초에 다음 호출에 안 실어 보내면
+그냥 없는 것이다. RAM 전원이 꺼지면 디스크에 저장 안 된 게 사라지는 것과 같다.
+
+## 2. Claude Memory (제품 기능) — 자동으로 안 비워진다
+claude.ai의 Memory는 대화 간 지속되는 "카테고리화된 개별 항목들"로 저장된다
+(2026-07-10 업데이트 기준). Context Window와는 완전히 다른 레이어 — Memory는
+저장+검색 시스템이고, 검색된 결과가 최종적으로 놓이는 그릇이 Context Window다.
+
+- `설정 → Capabilities → Memory`에서 항목별로 보기/수정/삭제 가능
+- 대화 중 "이거 기억하지 마"처럼 말로 지울 수 있음
+- 대화(채팅)를 삭제해도 그 대화에서 만들어진 Memory 항목은 자동으로 안 지워짐
+- "꽉 차면 자동으로 비워지는" 동작은 공식적으로 확인되지 않음 — 설계상 자동
+  삭제가 아니라 사람이 직접 편집/삭제하는 구조
+
+## 3. RAG와 Chunking — 개발자가 직접 짜는 영역
+RAG는 지식 저장소가 Context Window에 매번 통째로 넣기엔 너무 크거나 계속 늘어날
+때, 질문과 관련된 부분만 검색해서 가져오는 방식이다. 일반 구성: Chunking(문서
+쪼개기) → Embedding(벡터 변환, Anthropic은 자체 임베딩 모델이 없어 Voyage AI를
+공식 추천) → 벡터 DB 저장 → 질문 시점에 코사인 유사도로 Top-K 검색.
+
+여기서 중요한 함정: **Chunking을 대신 해주는 API는 없다. 100% 개발자가 코드로
+직접 나누는 전처리 단계**이고, 이 청킹 품질이 검색 정확도에 직접 영향을 준다.
+- 청크가 너무 크면 여러 주제가 섞여 벡터가 흐릿해짐
+- 청크가 너무 작으면 문맥이 잘려 그 자체로 의미가 불완전해짐
+- 경계를 아무렇게나 자르면(문장 중간 등) 임베딩이 왜곡됨
+
+완화 방법: 자연스러운 의미 단위로 자르기, 청크 간 겹침(overlap), 메타데이터 병행
+필터링, 1차 벡터검색 후 2차 reranking, 그리고 무엇보다 **골든 데이터셋으로 검색
+정확도를 직접 측정하는 것**(S12 Evals와 연결). "이럴 것이다"가 아니라 실제로
+확인해야 하는 영역이라, 이번 달 커리큘럼은 이 상세 튜닝을 의도적으로 범위 밖에 둠.
+
+## 4. Karpathy의 "LLM Wiki" — Disk 계층의 개인 지식저장소
+2026년 4월 Karpathy가 발표한 "LLM wiki"는 개인 지식 저장소를 Context Window
+너머의 장기 기억으로 구조화하는 방법에 대한 스펙이다. 위 CPU/RAM/ROM/Disk 프레임의
+**Disk 계층**에 해당 — CLAUDE.md처럼 항상 자동으로 로드되는 게 아니라, 필요할 때만
+꺼내오는 것이라는 점에서 RAG·Memory와 같은 부류다. 구분 기준을 한 줄로 요약하면:
+**"항상 자동으로 로드되는가(CLAUDE.md, boot-time) vs 필요할 때만 불러오는가
+(RAG/Memory/Wiki, on-demand)"**.
+
 ---
 
 # 실험 목적
