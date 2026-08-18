@@ -10,8 +10,8 @@ topic:
   - memory
   - rag
 model: claude-sonnet
-status: draft
-result: claude-md-content-recalled-in-fresh-session-without-repeating-in-prompt
+status: verified
+result: claude-md-presence-explains-answer-specificity-confirmed-via-empty-folder-baseline
 ---
 
 # 핵심 개념 정리
@@ -127,20 +127,32 @@ CLAUDE.md 같은 프로젝트 지침이 실제로 매 요청마다 반복 설명
 이 내용은 실제 이 프로젝트의 `CLAUDE.md`·`curriculum.md`와 문장 단위로 일치함 —
 프롬프트에 그 파일들을 첨부하지 않았는데도 정확히 인용됨.
 
+### Baseline 비교 (완전 빈 폴더)
+CLAUDE.md도, git 저장소도, memory 항목도 전혀 없는 별도 프로젝트 폴더
+(`C:\seolmin\snake\TTTT`)에서 똑같은 질문을 던짐. 결과: Claude가 "핵심 원칙을
+읽어올 근거가 아무것도 없다"고 명확히 답하고, 어떤 프로젝트를 말하는 건지 되물음
+— 일반론으로 얼버무리거나 지어내지 않음.
+
+| | Baseline (빈 폴더) | 이 vault |
+|---|---|---|
+| CLAUDE.md / memory 유무 | 둘 다 없음 | 둘 다 있음 |
+| 답변 | 근거 없음을 인정하고 되물음 | 구체적 5원칙 정확히 인용 |
+
 ## 예상과 달랐던 점
 이번 실행에서는 답변에 별도 memory 언급이 없었음(이전 실행에서는 "메모리에도
-남겨져 있다"는 언급이 섞여 나왔던 것과 대비됨). 다만 memory가 전혀 관여하지
-않았다는 걸 증명한 건 아니고, 이번엔 답변에 명시적으로 드러나지 않았을 뿐 —
-CLAUDE.md 단독 효과인지는 여전히 baseline 비교 없이는 확정 못 함.
+남겨져 있다"는 언급이 섞여 나왔던 것과 대비됨). Baseline에서는 예상대로 "모른다"
+수준을 넘어, 지어내지 않고 사용자에게 되묻는 반응까지 나왔음 — S1에서 다룬
+"불확실하면 인정한다"는 hallucination 완화 패턴이 여기서도 재현됨.
 
 ## 실패 사례
-해당 없음 (형식보다는 소스 분리 여부가 남은 과제).
+해당 없음.
 
 ## 결론
-"프로젝트 지침이 프롬프트 반복 설명 없이 자동으로 컨텍스트에 실린다"는 가설은
-지지되나, 이번 확인만으로는 그 출처가 CLAUDE.md 단독인지 auto memory와의 결합
-효과인지까지는 분리하지 못함. 또한 "로드 안 된 상태"와 나란히 비교하는 baseline
-실행을 하지 않아 대조군이 없음.
+"프로젝트 지침(CLAUDE.md/memory)이 있으면 프롬프트 반복 설명 없이 자동으로
+컨텍스트에 실린다"는 가설이 baseline 대조로 확인됨 — 있음/없음 조건에서 답변의
+구체성이 뚜렷하게 갈렸음. 다만 "CLAUDE.md 단독"과 "memory 단독"을 서로 분리하는
+것(둘 중 하나만 있는 조건)까지는 이번 실험 범위 밖으로 남겨둠 — 이번 목표였던
+"프로젝트 지침이 자동으로 로드되는가" 자체는 baseline으로 충분히 검증됨.
 
 ## 실제 프로젝트 적용 가능성
 `english-coach-ai-lab`에 프로젝트 전역 규칙(예: 응답 톤, 저장 시점 기준)을 둘 때,
@@ -149,6 +161,6 @@ CLAUDE.md 단독 효과인지는 여전히 baseline 비교 없이는 확정 못 
 
 ## 재현 방법
 1. CLAUDE.md도 auto memory 항목도 전혀 없는 새 프로젝트 폴더에서 동일 질문을 던져
-   "모른다"는 답이 나오는지 baseline으로 확인.
-2. CLAUDE.md만 있고 auto memory는 없는 상태에서 같은 질문을 던져 결과 비교.
-3. 위 결과와 이번 실행 결과를 나란히 놓고 CLAUDE.md 단독 효과를 분리.
+   근거 없음을 인정하는 답이 나오는지 baseline으로 확인. (완료 — 위 참고)
+2. (선택, 이번 실험 범위 밖) CLAUDE.md만 있고 auto memory는 없는 상태를 따로
+   만들어 같은 질문을 던지면, CLAUDE.md만의 순수 효과까지 분리 가능.
