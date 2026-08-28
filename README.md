@@ -40,6 +40,7 @@ flowchart LR
 | 1 | S4 | [통합실습] 백엔드 비교실험 (중복요청 버그 진단, 정보량 5단계) | comparison | [기록](2026-08-18-w1-comparison-bug-diagnosis-information-specificity.md) |
 | 1 | S5 | 검증·기록 (함정 조건 2건으로 실패 사례 헌팅) | comparison | [기록](2026-08-18-w1-comparison-bug-diagnosis-information-specificity.md) |
 | 2 | S6 | Tool Use (스키마 작성 + 실제 코드 배선·안전 실행 확인, 판단 결과는 미검증) | pipeline | [기록](2026-08-27-w2-pipeline-tool-use-judgment-boundary.md) |
+| 2 | S7 | Workflow와 Agent Loop (기존 코드로 Workflow 판정, Agent 전환 조건·비용 트레이드오프) | pipeline | [기록](2026-08-28-w2-pipeline-workflow-agent-loop-tradeoff.md) |
 <!-- /docs-done 실행 시 이 아래에 자동으로 한 줄씩 추가됨 -->
 
 ## 커리큘럼 개요
